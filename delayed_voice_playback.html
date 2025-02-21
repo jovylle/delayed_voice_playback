@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delayed Live Audio Feedback</title>
+</head>
+
+<body>
+  <h1>Delayed Live Audio Feedback</h1>
+  <button id="start">Start</button>
+  <button id="stop" disabled>Stop</button>
+  <select id="delay">
+    <option value="3000">3 Seconds</option>
+    <option value="5000">5 Seconds</option>
+    <option value="10000">10 Seconds</option>
+    <option value="30000">30 Seconds</option>
+    <option value="60000">1 Minute</option>
+  </select>
+
+  <script>
+    let audioContext, source, delayNode, mediaStream;
+
+    document.getElementById("start").addEventListener("click", async () => {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      source = audioContext.createMediaStreamSource(mediaStream);
+      delayNode = audioContext.createDelay();
+      delayNode.delayTime.value = parseInt(document.getElementById("delay").value) / 1000;
+
+      source.connect(delayNode);
+      delayNode.connect(audioContext.destination);
+
+      document.getElementById("start").disabled = true;
+      document.getElementById("stop").disabled = false;
+    });
+
+    document.getElementById("stop").addEventListener("click", () => {
+      if (audioContext) {
+        audioContext.close();
+        mediaStream.getTracks().forEach(track => track.stop());
+      }
+      document.getElementById("start").disabled = false;
+      document.getElementById("stop").disabled = true;
+    });
+  </script>
+</body>
+
+</html>
