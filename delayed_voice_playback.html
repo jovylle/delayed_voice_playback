@@ -26,8 +26,10 @@
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
       mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       source = audioContext.createMediaStreamSource(mediaStream);
-      delayNode = audioContext.createDelay();
-      delayNode.delayTime.value = parseInt(document.getElementById("delay").value) / 1000;
+
+      let maxDelay = 60; // Maximum delay in seconds
+      delayNode = audioContext.createDelay(maxDelay);
+      updateDelay();
 
       source.connect(delayNode);
       delayNode.connect(audioContext.destination);
@@ -35,6 +37,15 @@
       document.getElementById("start").disabled = true;
       document.getElementById("stop").disabled = false;
     });
+
+    function updateDelay () {
+      if (delayNode) {
+        let selectedDelay = parseInt(document.getElementById("delay").value) / 1000;
+        delayNode.delayTime.setValueAtTime(selectedDelay, audioContext.currentTime);
+      }
+    }
+
+    document.getElementById("delay").addEventListener("change", updateDelay);
 
     document.getElementById("stop").addEventListener("click", () => {
       if (audioContext) {
